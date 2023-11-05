@@ -1,10 +1,10 @@
-# FileManager
+## FileManager
 Minimalistic C++ header-only library for managing configurations.
 
-# Requirements
+## Requirements
 - C++20 Or above for `to_string` and `getline`.
 
-# Usage
+## Usage
 ```cpp
 #include "filesystem/filesystem.h"
 
@@ -46,7 +46,7 @@ int main() {
 }
 ```
 
-# Example File
+## Example File (game.ini)
 ```
 health_value: 100.000000
 armor_points: 50
