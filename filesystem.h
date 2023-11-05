@@ -28,6 +28,9 @@ SOFTWARE.
 #include <filesystem>
 #include <vector>
 
+#include <cstring>
+#include <type_traits> // For std::is_same
+
 class FileManager {
 private:
 	const char* _filePath;
@@ -62,7 +65,13 @@ public:
 		if (filePath.empty())
 			return false;
 
-		std::string strValue = std::to_string(originalValue);
+		std::string strValue;
+		if constexpr (std::is_same_v<t, std::string>) {
+			strValue = originalValue; // No need to use std::to_string
+		} else {
+			strValue = std::to_string(originalValue);
+		}
+
 		_data.push_back(std::make_pair(variableName, strValue));
 	}
 
@@ -74,7 +83,7 @@ public:
 		std::ofstream fileStream{ filePath, std::ios::out };
 
 		for (const auto& curItem : _data) {
-			fileStream << curItem.first << ": " << curItem.second << std::endl;
+			fileStream << curItem.first << "#" << curItem.second << std::endl;
 		}
 
 		fileStream.close();
@@ -88,7 +97,7 @@ public:
 			if (curItemName.empty())
 				continue;
 
-			if (!strcmp(curItemName.c_str(), variableName.c_str()))
+			if (curItemName == variableName)
 				outValue = curItem.second;
 		}
 
@@ -105,14 +114,18 @@ public:
 		std::string line;
 
 		while (std::getline(fileStream, line)) {
-			size_t curPos = line.find(":");
+			size_t curPos = line.find("#");
 			if (curPos != std::string::npos) {
 				std::string curName = line.substr(0, curPos);
-				std::string curValue = line.substr(curPos + 1);
-
-				if (!strcmp(curName.c_str(), variableName.c_str())) {
-					std::istringstream stringStream(curValue);
-					stringStream >> var;
+				if (curName == variableName) {
+					std::string curValue = line.substr(curPos + 1);
+					if constexpr (std::is_same_v<t, std::string>) {
+						var = curValue; // Assign the entire line as a string
+					} else {
+						std::istringstream stringStream(curValue);
+						stringStream >> var;
+					}
+					break; // No need to continue searching once we've found the value.
 				}
 			}
 		}
